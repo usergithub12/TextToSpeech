@@ -1,0 +1,119 @@
+﻿@{
+    ViewBag.Title = "Home Page";
+}
+
+<header>
+    <h1>Browser speech recognition</h1>
+</header>
+<main>
+    <select id="voices"></select>
+    <button id="button">Start listening</button>
+    <button id="getvoices" onclick="getVoices();">Get voices</button>
+    <div id="result"></div>
+    <p id="message" hidden aria-hidden="true">
+        Your browser doesn't support Speech Recognition. Sorry.
+    </p>
+    <button id="submit" onclick="speak($('.final').text());">Text to Speech</button>
+</main>
+<script src="@Url.Content("/Scripts/jquery-3.4.1.js")"></script>
+@*<script src="@Url.Content("/Scripts/speech.js")"></script>*@
+<script>
+
+
+    function speak(text) {
+    
+
+        var msg = new SpeechSynthesisUtterance();
+        var voices = window.speechSynthesis.getVoices();
+        //for (var i = 0; i < voices.length; i++) {
+        //    $("#voices").append(new Option(voices[i].name, i));
+        //    //console.log("voice - " + i, voices[i].name);
+        //}
+        console.log("$('#voices option: selected').val()", $("#voices option:selected").val())
+        msg.voice = voices[$("#voices option:selected").val()];
+        msg.volume = 1; // From 0 to 1
+        // msg.rate = 1; // From 0.1 to 10
+        //  msg.pitch = 2; // From 0 to 2
+        msg.text = text;
+        // msg.lang = 'en-US';
+        speechSynthesis.speak(msg);
+    }
+    function getVoices() {
+
+
+       // var msg = new SpeechSynthesisUtterance();
+        var voices = window.speechSynthesis.getVoices();
+        for (var i = 0; i < voices.length; i++) {
+            $("#voices").append(new Option(voices[i].name, i));
+            //console.log("voice - " + i, voices[i].name);
+        }
+      //  msg.voice = voices[$("#voices option:selected").val()];
+       // msg.volume = 1; // From 0 to 1
+        // msg.rate = 1; // From 0.1 to 10
+        //  msg.pitch = 2; // From 0 to 2
+     //   msg.text = text;
+        // msg.lang = 'en-US';
+       // speechSynthesis.speak(msg);
+    }
+
+   
+
+
+
+
+    window.addEventListener("DOMContentLoaded", () => {
+        speechSynthesis.getVoices().forEach(function (voice) {
+          //  console.log(voice.name, voice.default ? voice.default : '');
+            $("#voices").append(new Option(voice.name, i));
+        });
+
+
+
+        const button = document.getElementById("button");
+        const result = document.getElementById("result");
+        const main = document.getElementsByTagName("main")[0];
+        let listening = false;
+        const SpeechRecognition =
+            window.SpeechRecognition || window.webkitSpeechRecognition;
+        if (typeof SpeechRecognition !== "undefined") {
+            const recognition = new SpeechRecognition();
+
+            const stop = () => {
+                main.classList.remove("speaking");
+                recognition.stop();
+                button.textContent = "Start listening";
+            };
+
+            const start = () => {
+                main.classList.add("speaking");
+                recognition.start();
+                button.textContent = "Stop listening";
+            };
+
+            const onResult = event => {
+                result.innerHTML = "";
+                for (const res of event.results) {
+                    const text = document.createTextNode(res[0].transcript);
+                    const p = document.createElement("p");
+                    if (res.isFinal) {
+                        p.classList.add("final");
+                    }
+                    p.appendChild(text);
+                    result.appendChild(p);
+                }
+            };
+            recognition.continuous = true;
+            recognition.interimResults = true;
+            recognition.addEventListener("result", onResult);
+            button.addEventListener("click", event => {
+                listening ? stop() : start();
+                listening = !listening;
+            });
+        } else {
+            button.remove();
+            const message = document.getElementById("message");
+            message.removeAttribute("hidden");
+            message.setAttribute("aria-hidden", "false");
+        }
+    });
+</script>
